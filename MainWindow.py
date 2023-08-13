@@ -36,15 +36,19 @@ class Application(QMainWindow):
         self.Notes_list.itemDoubleClicked.connect(self.Edit_note_input)
 
         self.Button_add_note = QPushButton(self)
-        self.Button_add_note.move(self.DWIDTH - 200, 100)
-        self.Button_add_note.setText("add note")
-        self.Button_add_note.adjustSize()
+        self.Button_add_note.setGeometry(self.Notes_list.x() + self.Notes_list.width() + 5, 100, 50, 50)
+        self.Button_add_note.setIcon(QtGui.QIcon(QtGui.QPixmap("images/add_button.png").scaled(35, 35)))
+        self.Button_add_note.setStyleSheet("background-color: rgba(0, 0, 0, 0.5); border-radius: 5px;")
+        self.Button_add_note.setIconSize(QtCore.QSize(35, 35))
+        self.Button_add_note.setToolTip("Добавить заметку")
         self.Button_add_note.clicked.connect(self.Add_note_input)
         
         self.Button_clear_notes_list = QPushButton(self)
-        self.Button_clear_notes_list.move(self.Button_add_note.x(), self.Button_add_note.y() + self.Button_add_note.height() + 20)
-        self.Button_clear_notes_list.setText("clear list")
-        self.Button_clear_notes_list.adjustSize()
+        self.Button_clear_notes_list.setGeometry(self.Button_add_note.x(), self.Button_add_note.y() + self.Button_add_note.height() + 5, 50, 50)
+        self.Button_clear_notes_list.setIcon(QtGui.QIcon(QtGui.QPixmap("images/clear_button.png").scaled(35, 35)))
+        self.Button_clear_notes_list.setStyleSheet("background-color: rgba(0, 0, 0, 0.5); border-radius: 5px;")
+        self.Button_clear_notes_list.setIconSize(QtCore.QSize(35, 35))
+        self.Button_clear_notes_list.setToolTip("Очистить список")
         self.Button_clear_notes_list.clicked.connect(self.Clear_notes_list)
 
         self.Notes_list_text = QLabel(self)
@@ -201,6 +205,8 @@ class Application(QMainWindow):
             self.Notes_list.currentItem().setText(fnt(self.input_text_note.text()))
             ndb.Edit_text_index(self.Notes_list.indexFromItem(self.Notes_list.currentItem()).row(), self.input_text_note.text())
             self.last_text = ""
+            self.Notes_list.clear()
+            self.Check_data_base("Notes")
         self.input_text_note.clear()
         self.input_text_note.close()
         self.preview_note_text.clear()
@@ -215,6 +221,8 @@ class Application(QMainWindow):
     def Delete_note(self):
         self.Notes_list.takeItem(self.Notes_list.currentRow())
         ndb.Delete_index(self.Notes_list.indexFromItem(self.Notes_list.currentItem()).row())
+        self.Notes_list.clear()
+        self.Check_data_base("Notes")
         self.input_text_note.clear()
         self.input_text_note.close()
         self.preview_note_text.clear()

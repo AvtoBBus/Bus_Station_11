@@ -17,12 +17,12 @@ def Read_full() -> list[str]:
     db_file = pd.read_csv(DB_PATH, delimiter=";", encoding="utf-8", index_col=False)
     result_list = []
     for i in range(int(db_file.shape[0])):
-        result_list.append(db_file["Notes_text"][i])
+        result_list.append(str(db_file["Notes_text"][i]))
     return result_list
 
 def Read_text_index(index: int) -> str:
     db_file = pd.read_csv(DB_PATH, delimiter=";", encoding="utf-8", index_col=False)
-    return db_file["Notes_text"][index]
+    return str(db_file["Notes_text"][index])
 
 def Edit_text_index(index: int, new_text: str) -> None:
     current_datetime = datetime.now()
@@ -35,7 +35,7 @@ def Edit_text_index(index: int, new_text: str) -> None:
 
 def Delete_index(index: int) -> None:
     db_file = pd.read_csv(DB_PATH, delimiter=";", encoding="utf-8")
-    db_file.drop(labels=index + 1, axis=0,inplace=True)
+    db_file.drop(labels=index, axis=0,inplace=True)
     Clear_data_base()
     db_file.to_csv(DB_PATH, sep=';', index=False)
 
