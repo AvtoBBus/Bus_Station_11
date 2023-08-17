@@ -1,5 +1,5 @@
 import sys
-from Notes_formater import Format_note_text as fnt
+from Notes_formater import Format_note_name as fnn
 import Notes_data_base as ndb
 from PyQt5.QtWidgets import *
 from PyQt5 import QtGui
@@ -19,6 +19,7 @@ class Application(QMainWindow):
         self.setWindowTitle('app')
 
         self.last_text = ""
+        self.last_name = ""
         self.note_on_work = False
         self.show_fav_now = False
 
@@ -117,7 +118,7 @@ class Application(QMainWindow):
             100, 100, self.DWIDTH // 2 - self.Exit_Button.width() - 140, self.DHEIGHT - 210)
         self.Alarm_list.setFont(QtGui.QFont("intro", 35))
         self.Alarm_list.setStyleSheet(
-            "background-color: rgba(0, 0, 0, 0.5); border: none; border-radius: 5px; color: #E5CCFF")
+            "background-color: rgba(0, 0, 0, 0.5); border: none; border-radius: 5px; color: #E5CCFF;")
 
         self.Add_alarm_button = QPushButton(self)
         self.Add_alarm_button.setGeometry(
@@ -160,7 +161,7 @@ class Application(QMainWindow):
             if len(data) == 0:
                 return
             for i in range(len(data)):
-                if data[i][1] == 1:
+                if data[i][2] == 1:
                     self.Notes_list.addItem(QListWidgetItem(data[i][0]))
                     item = self.Notes_list.item(i)
                     item.setForeground(QtGui.QColor(229, 199, 1, 205))
@@ -176,25 +177,45 @@ class Application(QMainWindow):
         ) // 2, self.Notes_list.y(), self.Notes_list.width() // 2, self.Notes_list.height())
         self.background_notes.show()
 
-        self.input_text_note = QLineEdit(self)
-        self.input_text_note.setGeometry(self.background_notes.x() + self.background_notes.width() // 5, self.background_notes.y(
-        ) + 2 * (self.background_notes.height() // 3), self.background_notes.width() - 2 * (self.background_notes.width() // 5), 30)
-        self.input_text_note.setFont(QtGui.QFont("intro", 14))
-        self.input_text_note.textEdited.connect(self.Fill_preview_notes)
+        self.name_text = QLabel(self)
+        self.name_text.setText("Name:")
+        self.name_text.setGeometry(self.background_notes.x() + self.background_notes.width() // 15, self.background_notes.y(
+        ) + self.background_notes.height() // 10, self.background_notes.width() // 6, 30)
+        self.name_text.setFont(QtGui.QFont("intro", 13))
+        self.name_text.setStyleSheet("color: white")
+        self.name_text.show()
 
-        self.preview_note_text = QLabel(self)
-        self.preview_note_text.setGeometry(self.input_text_note.x(), self.background_notes.y() + self.background_notes.height(
-        ) // 6, self.input_text_note.width(), self.input_text_note.y() - 20 - (self.background_notes.y() + self.background_notes.height() // 6))
-        self.preview_note_text.setFont(QtGui.QFont("intro", 12))
-        self.preview_note_text.setStyleSheet("color: white;")
-        self.preview_note_text.setWordWrap(True)
+        self.text_text = QLabel(self)
+        self.text_text.setText("Text:")
+        self.text_text.setGeometry(self.name_text.x(), self.name_text.y(
+        ) + self.name_text.height() + 5, self.background_notes.width() // 6, 30)
+        self.text_text.setFont(QtGui.QFont("intro", 13))
+        self.text_text.setStyleSheet("color: white")
+        self.text_text.show()
+
+        self.input_name_note = QLineEdit(self)
+        self.input_name_note.setGeometry(self.name_text.x() + self.name_text.width() + 15, self.name_text.y(
+        ), self.background_notes.width() - 2 * (self.background_notes.width() // 5), 30)
+        self.input_name_note.setFont(QtGui.QFont("intro", 14))
+        self.input_name_note.setStyleSheet(
+            "background-color: rgba(224, 224, 224, 1); border: none; border-radius: 5px;")
+
+        self.input_text_note = QTextEdit(self)
+        self.input_text_note.setGeometry(self.input_name_note.x(), self.input_name_note.y(
+        ) + self.input_name_note.height() + 5, self.background_notes.width() - 2 * (self.background_notes.width() // 5), self.background_notes.height() // 2)
+        self.input_text_note.setFont(QtGui.QFont("intro", 14))
+        self.input_text_note.textChanged.connect(self.Format_text_note)
+        self.input_text_note.setStyleSheet(
+            "background-color: rgba(224, 224, 224, 1); border: none; border-radius: 5px;")
 
         if edit:
             self.last_text = ndb.Read_text_index(
                 self.Notes_list.indexFromItem(self.Notes_list.currentItem()).row())
+            self.last_name = ndb.Read_name_index(
+                self.Notes_list.indexFromItem(self.Notes_list.currentItem()).row())
             self.input_text_note.setText(self.last_text)
-            self.preview_note_text.setText(self.last_text)
-        self.preview_note_text.show()
+            self.input_name_note.setText(self.last_name)
+        self.input_name_note.show()
         self.input_text_note.show()
 
         self.add_note_button = QPushButton(self)
@@ -231,20 +252,20 @@ class Application(QMainWindow):
         if not self.note_on_work:
             self.note_on_work = True
             self.Draw_input_note_menu()
-            self.input_text_note.returnPressed.connect(self.Add_note)
             self.add_note_button.clicked.connect(self.Add_note)
             self.cancel_note_button.clicked.connect(self.Cancel_note)
 
     def Add_note(self):
-        if len(self.input_text_note.text()) != 0:
+        if len(self.input_name_note.text()) != 0:
             self.Notes_list.addItem(QListWidgetItem(
-                fnt(self.input_text_note.text())))
-            ndb.Add_to_data_base(self.input_text_note.text())
+                fnn(self.input_name_note.text())))
+            ndb.Add_to_data_base(self.input_name_note.text(),
+                                 self.input_text_note.toPlainText())
         self.input_text_note.clear()
-        self.input_text_note.close()
-        self.preview_note_text.clear()
-        self.preview_note_text.close()
+        self.input_name_note.clear()
 
+        self.input_text_note.close()
+        self.input_name_note.close()
         self.background_notes.close()
         self.add_note_button.close()
         self.cancel_note_button.close()
@@ -252,10 +273,12 @@ class Application(QMainWindow):
 
     def Cancel_note(self):
         self.input_text_note.clear()
-        self.input_text_note.close()
-        self.preview_note_text.clear()
-        self.preview_note_text.close()
+        self.input_name_note.clear()
 
+        self.name_text.close()
+        self.text_text.close()
+        self.input_text_note.close()
+        self.input_name_note.close()
         self.background_notes.close()
         self.add_note_button.close()
         self.edit_note_button.close()
@@ -268,26 +291,28 @@ class Application(QMainWindow):
         if not self.note_on_work:
             self.note_on_work = True
             self.Draw_input_note_menu(edit=True)
-            self.input_text_note.returnPressed.connect(self.Edit_note)
             self.edit_note_button.clicked.connect(self.Edit_note)
             self.cancel_note_button.clicked.connect(self.Cancel_note)
             self.delete_note_button.clicked.connect(self.Delete_note)
 
     def Edit_note(self):
-        if len(self.input_text_note.text()) == 0:
-            self.Notes_list.currentItem().setText(self.last_text)
+        if len(self.input_name_note.text()) == 0:
+            self.Notes_list.currentItem().setText(self.last_name)
         else:
-            self.Notes_list.currentItem().setText(fnt(self.input_text_note.text()))
+            self.Notes_list.currentItem().setText(fnn(self.input_name_note.text()))
             ndb.Edit_text_index(self.Notes_list.indexFromItem(
-                self.Notes_list.currentItem()).row(), self.input_text_note.text())
+                self.Notes_list.currentItem()).row(), self.input_name_note.text(), self.input_text_note.toPlainText())
             self.last_text = ""
+            self.last_name = ""
             self.Notes_list.clear()
             self.Check_data_base("Notes")
         self.input_text_note.clear()
-        self.input_text_note.close()
-        self.preview_note_text.clear()
-        self.preview_note_text.close()
+        self.input_name_note.clear()
 
+        self.name_text.close()
+        self.text_text.close()
+        self.input_name_note.close()
+        self.input_text_note.close()
         self.background_notes.close()
         self.edit_note_button.close()
         self.cancel_note_button.close()
@@ -302,9 +327,11 @@ class Application(QMainWindow):
         self.Check_data_base("Notes")
         self.input_text_note.clear()
         self.input_text_note.close()
-        self.preview_note_text.clear()
-        self.preview_note_text.close()
+        self.input_name_note.clear()
+        self.input_name_note.close()
 
+        self.name_text.close()
+        self.text_text.close()
         self.background_notes.close()
         self.edit_note_button.close()
         self.cancel_note_button.close()
@@ -323,9 +350,6 @@ class Application(QMainWindow):
         else:
             Are_U_Sure_Box.close()
 
-    def Fill_preview_notes(self):
-        self.preview_note_text.setText(self.input_text_note.text())
-
     def Add_Del_favourites(self):
         index = self.Notes_list.currentRow()
         if index >= 0:
@@ -341,7 +365,7 @@ class Application(QMainWindow):
             self.Notes_list.clear()
             data = ndb.Read_full()
             for i in range(len(data)):
-                if data[i][1] == 1:
+                if data[i][2] == 1:
                     self.Notes_list.addItem(QListWidgetItem(data[i][0]))
             if self.Notes_list.count() == 0:
                 self.Notes_list.addItem(QListWidgetItem("Empty("))
@@ -368,11 +392,55 @@ class Application(QMainWindow):
 
         self.Alarm_preview = QLabel(self)
         self.Alarm_preview.setGeometry(
-            self.Background_alarm.x() + 10, self.Background_alarm.y() + 10, 70, 70)
-        self.Alarm_preview.setText("a")
+            self.Background_alarm.x() + self.Background_alarm.width() // 7, self.Background_alarm.y() + self.Background_alarm.height() // 6, 170, 70)
+        self.Alarm_preview.setText("00:00")
         self.Alarm_preview.setFont(QtGui.QFont("intro", 35))
         self.Alarm_preview.setStyleSheet("color: white")
         self.Alarm_preview.show()
+
+        self.Alarm_hour_text = QLabel(self)
+        self.Alarm_hour_text.setGeometry(self.Alarm_preview.x(
+        ) + self.Alarm_preview.width() + 15, self.Alarm_preview.y(), 50, 30)
+        self.Alarm_hour_text.setFont(QtGui.QFont("intro", 14))
+        self.Alarm_hour_text.setText("HH")
+        self.Alarm_hour_text.setStyleSheet("color: white")
+        self.Alarm_hour_text.show()
+
+        self.Alarm_hour_input = QComboBox(self)
+        self.Alarm_hour_input.setGeometry(self.Alarm_hour_text.x(
+        ), self.Alarm_hour_text.y() + self.Alarm_hour_text.height() + 5, 70, 30)
+        self.Alarm_hour_input.addItems(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+                                       "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"])
+        self.Alarm_hour_input.setFont(QtGui.QFont("intro", 13))
+        self.Alarm_hour_input.setStyleSheet(
+            "background-color: rgba(224, 224, 224, 0.2); border: none; border-radius: 5px;color: white")
+        self.Alarm_hour_input.show()
+        self.Alarm_hour_input.currentTextChanged.connect(
+            self.Fill_alarm_preview)
+
+        self.Alarm_minute_text = QLabel(self)
+        self.Alarm_minute_text.setGeometry(self.Alarm_hour_input.x(
+        ) + self.Alarm_hour_input.width() + 15, self.Alarm_hour_text.y(), 50, 30)
+        self.Alarm_minute_text.setFont(QtGui.QFont("intro", 14))
+        self.Alarm_minute_text.setText("MM")
+        self.Alarm_minute_text.setStyleSheet("color: white")
+        self.Alarm_minute_text.show()
+
+        self.Alarm_minute_input = QComboBox(self)
+        self.Alarm_minute_input.setGeometry(self.Alarm_minute_text.x(
+        ), self.Alarm_minute_text.y() + self.Alarm_minute_text.height() + 5, 70, 30)
+        self.Alarm_minute_input.addItems(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+                                          "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                                          "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+                                          "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+                                          "41", "42", "43", "44", "45", "46", "47", "48", "49", "50",
+                                          "51", "52", "53", "54", "55", "56", "57", "58", "59"])
+        self.Alarm_minute_input.setFont(QtGui.QFont("intro", 13))
+        self.Alarm_minute_input.setStyleSheet(
+            "background-color: rgba(224, 224, 224, 0.2); border: none; border-radius: 5px;color: white")
+        self.Alarm_minute_input.show()
+        self.Alarm_minute_input.currentTextChanged.connect(
+            self.Fill_alarm_preview)
 
     def Add_alarm_input(self):
         if not self.Alarm_on_work:
@@ -381,6 +449,17 @@ class Application(QMainWindow):
 
     def Add_alarm(self):
         self.Alarm_list.addItem(QListWidgetItem())
+
+    def Format_text_note(self):
+        if len(self.input_text_note.toPlainText()) > 50:
+            if len(self.input_text_note.toPlainText()) > 60:
+                self.input_text_note.setFont(QtGui.QFont("intro", 11))
+            else:
+                self.input_text_note.setFont(QtGui.QFont("intro", 12))
+
+    def Fill_alarm_preview(self):
+        self.Alarm_preview.setText(
+            f"{str(self.Alarm_hour_input.currentIndex()).zfill(2)}:{str(self.Alarm_minute_input.currentIndex()).zfill(2)}")
 
     def mouseMoveEvent(self, event):
         if event.x() > self.DWIDTH - self.Exit_Button.width() - 105 and event.x() < self.DWIDTH - 95 and event.y() > self.DHEIGHT - self.Exit_Button.height() - 115 and event.y() < self.DHEIGHT - 105:
