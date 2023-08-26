@@ -1,0 +1,113 @@
+QLabel#clock
+{
+   background-color:rgba(0, 0, 0, 0.3);
+   color: white; 
+}
+
+QLabel#Zone_name
+{
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 5px;
+    color: white
+}
+
+QLabel#Background
+{
+    background-color: rgba(0, 0, 0, 0.77);
+    border: none;
+    border-radius: 5px;
+    color: white;
+}
+
+QLabel#Background_alarm_notification
+{
+    background-color: rgba(0, 0, 0, 0.6);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    padding-left: 10px;
+}
+
+
+QLabel#Text_annotation
+{
+    color: white;
+}
+
+QPushButton#Add_button
+{
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+}
+
+QPushButton#Clear_list_button
+{
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+}
+
+QPushButton#Add_to_favourite
+{
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+}
+
+QPushButton#Show_favourites
+{
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px; 
+}
+
+QPushButton#Play_music_button
+{
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 5px; 
+}
+
+QPushButton#Alarm_notification_button
+{
+    background-color: rgba(0, 0, 0, 0.3);
+    color: white;
+    border-radius: 5px; 
+}
+
+QCheckBox#Alarm_activated:!checked
+{
+    color: #FF6666
+}
+
+QCheckBox#Alarm_activated:checked
+{
+    color: #66FF66
+}
+
+QListWidget
+{
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 5px;
+    color: white;
+}
+
+QLineEdit
+{
+    background-color: rgba(224, 224, 224, 1);
+    border: none;
+    border-radius: 5px;
+}
+
+QTextEdit
+{
+    background-color: rgba(224, 224, 224, 1);
+    border: none;
+    border-radius: 5px;
+}
+
+QComboBox
+{
+   background-color: rgba(224, 224, 224, 0.2);
+   border: none;
+   border-radius: 5px;
+   color: white 
+}

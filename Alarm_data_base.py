@@ -24,6 +24,7 @@ def sort_data_base() -> None:
 
 
 def Read_full() -> list[list[str, str, int]]:
+    sort_data_base()
     db_file = pd.read_csv(DB_PATH, delimiter=";",
                           encoding="utf-8", index_col=False)
     result_list = []
@@ -71,7 +72,10 @@ def Delete_index(index: int) -> None:
 
 def Activate_alarm(index: int) -> None:
     db_file = pd.read_csv(DB_PATH, delimiter=";", encoding="utf-8")
-    db_file.at[index, "Activated"] = 1 if db_file["Activated"][index] == 0 else 0
+    if db_file["Activated"][index] == 0:
+        db_file.at[index, "Activated"] = 1
+    else:
+        db_file.at[index, "Activated"] = 0
     Clear_data_base()
     db_file.to_csv(DB_PATH, sep=';', index=False)
 
@@ -82,15 +86,21 @@ def Clear_data_base() -> None:
         writerer.writerow(["Alarm_time", "Music", "Activated"])
 
 
-if __name__ == "__main__":
-    Clear_data_base()
-    Add_to_data_base("a", "a", 0)
-    Add_to_data_base("b", "b")
-    Add_to_data_base("c", "c")
-    Add_to_data_base("d", "d")
-    print(Read_full())
-    print(Check_activated(0))
-    print(Check_activated(1))
-    Activate_alarm(1)
-    print(Check_activated(1))
-    Clear_data_base()
+def Read_full_time() -> list[str]:
+    db_file = pd.read_csv(DB_PATH, delimiter=";",
+                          encoding="utf-8", index_col=False)
+    return db_file['Alarm_time'].to_list()
+
+
+# if __name__ == "__main__":
+#     Clear_data_base()
+#     Add_to_data_base("a", "a", 0)
+#     Add_to_data_base("b", "b")
+#     Add_to_data_base("c", "c")
+#     Add_to_data_base("d", "d")
+#     print(Read_full())
+#     print(Check_activated(0))
+#     print(Check_activated(1))
+#     Activate_alarm(1)
+#     print(Check_activated(1))
+#     Clear_data_base()
