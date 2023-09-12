@@ -27,5 +27,3 @@ class Alarm_queue():
 
     def clear_queue(self) -> None:
         self.alarm_queue.clear()
-
-# aq = Alarm_queue(["10:00", "13:00", "15:00"])

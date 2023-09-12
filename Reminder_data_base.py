@@ -2,56 +2,51 @@ import csv
 import pandas as pd
 from datetime import datetime
 
-DB_PATH = "data_bases/alarm_data_base/alarm_data.csv"
+DB_PATH = "data_bases/reminders_data_base/reminders_data.csv"
 
 
-def Add_to_data_base(time: str, music: str, activated: int = 1) -> None:
+def Add_to_data_base(Reminder_text: str, Creature_date: str, reminders_type: int, activated: int = 1) -> None:
     with open(DB_PATH, 'a', encoding="utf-8", newline="") as db_file:
         writerer = csv.writer(db_file, delimiter=';')
-        writerer.writerow([time,
-                           music,
-                           activated]
-                          )
-    sort_data_base()
+        writerer.writerow([Reminder_text, Creature_date,
+                          activated, reminders_type])
 
 
-def sort_data_base() -> None:
-    db_file = pd.read_csv(DB_PATH, delimiter=";",
-                          encoding="utf-8", index_col=False)
-    db_file.sort_values("Alarm_time", inplace=True)
-    Clear_data_base()
-    db_file.to_csv(DB_PATH, sep=';', index=False)
-
-
-def Read_full() -> list[list[str, str, int]]:
-    sort_data_base()
+def Read_full() -> list[list[str, str, int, str]]:
     db_file = pd.read_csv(DB_PATH, delimiter=";",
                           encoding="utf-8", index_col=False)
     result_list = []
     for i in range(int(db_file.shape[0])):
-        result_list.append([str(db_file["Alarm_time"][i]),
-                            str(db_file["Music"][i]),
-                            int(db_file["Activated"][i])]
+        result_list.append([str(db_file["Reminder_text"][i]),
+                            str(db_file["Creature_date"][i]),
+                            int(db_file["Activated"][i]),
+                            str(db_file["Reminders_type"][i])]
                            )
     return result_list
 
 
-def Read_full_time() -> list[str]:
+def Read_full_date() -> list[str]:
     db_file = pd.read_csv(DB_PATH, delimiter=";",
                           encoding="utf-8", index_col=False)
-    return db_file['Alarm_time'].to_list()
+    return db_file['Creature_date'].to_list()
 
 
-def Read_time_index(index: int) -> str:
+def Read_text_index(index: int) -> str:
     db_file = pd.read_csv(DB_PATH, delimiter=";",
                           encoding="utf-8", index_col=False)
-    return str(db_file["Alarm_time"][index])
+    return str(db_file["Reminder_text"][index])
 
 
-def Read_music_index(index: int) -> str:
+def Read_date_index(index: int) -> list[str]:
     db_file = pd.read_csv(DB_PATH, delimiter=";",
                           encoding="utf-8", index_col=False)
-    return str(db_file["Music"][index])
+    return str(db_file["Creature_date"][index]).split(".")
+
+
+def Read_type_index(index: int) -> str:
+    db_file = pd.read_csv(DB_PATH, delimiter=";",
+                          encoding="utf-8", index_col=False)
+    return str(db_file["Reminders_type"][index])
 
 
 def Check_activated(index: int) -> bool:
@@ -60,11 +55,11 @@ def Check_activated(index: int) -> bool:
     return bool(db_file["Activated"][index])
 
 
-def Edit_alarm_index(index: int, new_time: str, new_music: str) -> None:
+def Edit_reminder_index(index: int, new_text: str, new_date: str, new_type: str) -> None:
     db_file = pd.read_csv(DB_PATH, delimiter=";", encoding="utf-8")
-    db_file.at[index, "Alarm_time"] = new_time
-    db_file.at[index, "Music"] = new_music
-    db_file.at[index, "Activated"] = db_file["Activated"][index]
+    db_file.at[index, "Reminder_text"] = new_text
+    db_file.at[index, "Creature_date"] = new_date
+    db_file.at[index, "Reminders_type"] = new_type
     Clear_data_base()
     db_file.to_csv(DB_PATH, sep=';', index=False)
 
@@ -76,7 +71,7 @@ def Delete_index(index: int) -> None:
     db_file.to_csv(DB_PATH, sep=';', index=False)
 
 
-def Activate_alarm(index: int) -> None:
+def Activate_remind(index: int) -> None:
     db_file = pd.read_csv(DB_PATH, delimiter=";", encoding="utf-8")
     if db_file["Activated"][index] == 0:
         db_file.at[index, "Activated"] = 1
@@ -89,7 +84,8 @@ def Activate_alarm(index: int) -> None:
 def Clear_data_base() -> None:
     with open(DB_PATH, "w", encoding="utf-8", newline="") as file:
         writerer = csv.writer(file, delimiter=";")
-        writerer.writerow(["Alarm_time", "Music", "Activated"])
+        writerer.writerow(["Reminder_text", "Creature_date",
+                          "Activated", "Reminders_type"])
 
 
 # if __name__ == "__main__":
@@ -101,6 +97,8 @@ def Clear_data_base() -> None:
 #     print(Read_full())
 #     print(Check_activated(0))
 #     print(Check_activated(1))
-#     Activate_alarm(1)
+#     Activate_remind(1)
 #     print(Check_activated(1))
+#     Edit_reminder_index(0, "aaaa", "aaaaaaa")
+#     print(Read_full())
 #     Clear_data_base()

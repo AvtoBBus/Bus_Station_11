@@ -20,7 +20,7 @@ QLabel#Background
     color: white;
 }
 
-QLabel#Background_alarm_notification
+QLabel#Background_notification
 {
     background-color: rgba(0, 0, 0, 0.6);
     border: none;
@@ -33,6 +33,17 @@ QLabel#Background_alarm_notification
 QLabel#Text_annotation
 {
     color: white;
+}
+
+QLabel#Reminder_text
+{
+    color: white;
+}
+
+QPushButton#Setting_button
+{
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 5px;
 }
 
 QPushButton#Add_button
@@ -65,19 +76,19 @@ QPushButton#Play_music_button
     border-radius: 5px; 
 }
 
-QPushButton#Alarm_notification_button
+QPushButton#Stop_notification_button
 {
     background-color: rgba(0, 0, 0, 0.3);
     color: white;
     border-radius: 5px; 
 }
 
-QCheckBox#Alarm_activated:!checked
+QCheckBox#Activated_checkbox:!checked
 {
     color: #FF6666
 }
 
-QCheckBox#Alarm_activated:checked
+QCheckBox#Activated_checkbox:checked
 {
     color: #66FF66
 }
@@ -105,6 +116,22 @@ QTextEdit
 }
 
 QComboBox
+{
+   background-color: rgba(224, 224, 224, 0.2);
+   border: none;
+   border-radius: 5px;
+   color: white 
+}
+
+QDateEdit
+{
+   background-color: rgba(224, 224, 224, 0.2);
+   border: none;
+   border-radius: 5px;
+   color: white 
+}
+
+QDateTimeEdit
 {
    background-color: rgba(224, 224, 224, 0.2);
    border: none;
