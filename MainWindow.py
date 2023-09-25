@@ -2,9 +2,7 @@ import sys
 import time
 import os
 from datetime import datetime
-from typing import Any
-from plyer import notification
-import Send_notification
+import json
 from datetime import datetime
 import Text_formater
 import Convert_date_time
@@ -130,8 +128,9 @@ class remindersThread(QtCore.QThread):
 
 
 class Application(QMainWindow):
-    def __init__(self):
+    def __init__(self, presets):
         super(Application, self).__init__()
+        self.presets = presets
         self.initUI()
         self.setMouseTracking(True)
 
@@ -141,14 +140,16 @@ class Application(QMainWindow):
         self.DWIDTH = desktop.width()
         self.setWindowTitle('app')
 
-        self.clock = QLabel(self)
-        self.clock.setObjectName("clock")
-        self.clock.setGeometry(13 * self.DWIDTH // 32,
-                               10, self.DHEIGHT // 4, 50)
-        self.clock.setFont(QtGui.QFont("intro", 20))
-        self.clockthread = clockThread(mainwindow=self)
-        self.clockthread.start()
-        self.clock.show()
+        self.Setting_background = QLabel(self)
+        self.Button_save_changes = QPushButton(self)
+        self.Change_background = QComboBox(self)
+        self.Background_preview = QLabel(self)
+
+        self.Setting_background.setObjectName("Setting_background")
+        self.Change_background.addItems(
+            os.listdir(self.presets["backgrounds_path"]))
+
+        self.Clock_init("clock")
 
         self.Exit_Button = QPushButton(self)
         self.Exit_Button.setText("ВЫХОД")
@@ -167,7 +168,7 @@ class Application(QMainWindow):
             QtGui.QPixmap("images/icon/setting_button.png").scaled(35, 35)))
         self.Setting_button.setIconSize(QtCore.QSize(35, 35))
         self.Setting_button.setToolTip("Настройки")
-        # self.Setting_button.clicked.connect(self.Clear_notes_list)
+        self.Setting_button.clicked.connect(self.Show_setting_window)
         self.Setting_button.show()
 
         self.last_text = ""
@@ -354,7 +355,18 @@ class Application(QMainWindow):
         self.Alarm_notification_background.close()
         self.Alarm_notification_stop_button.close()
 
+        self.Close_setting()
         self.showFullScreen()
+
+    def Clock_init(self, obj_name: str):
+        self.clock = QLabel(self)
+        self.clock.setObjectName(obj_name)
+        self.clock.setGeometry(13 * self.DWIDTH // 32,
+                               10, self.DHEIGHT // 4, 50)
+        self.clock.setFont(QtGui.QFont("intro", 20))
+        self.clockthread = clockThread(mainwindow=self)
+        self.clockthread.start()
+        self.clock.show()
 
     def Exit_func(self):
         self.Exit_Button.setStyleSheet(
@@ -905,11 +917,12 @@ class Application(QMainWindow):
 
         self.change_reminder_time_in_day = QDateTimeEdit(self)
         self.change_reminder_time_in_day.setDisplayFormat("HH:mm")
-        if self.change_reminders_type.currentText == "Каждый день":
-            time = rdb.Read_type_index(
-                self.Reminders_list.currentRow()).split("$")[1]
-            self.change_reminder_time_in_day.setTime(
-                QtCore.QTime(time.split(":")[0], time.split(":")[1]))
+        if self.change_reminders_type.currentText() == "Каждый день":
+            if edit:
+                time = rdb.Read_type_index(
+                    self.Reminders_list.currentRow()).split("$")[1]
+                self.change_reminder_time_in_day.setTime(
+                    QtCore.QTime(int(time.split(":")[0]), int(time.split(":")[1])))
         if not edit:
             self.change_reminder_time_in_day.setGeometry(self.change_reminders_type.x() + self.change_reminders_type.width(
             ) + 10, self.change_reminders_type.y(), self.change_reminders_type.width(), 30)
@@ -919,7 +932,7 @@ class Application(QMainWindow):
         self.change_reminder_day_in_week.addItems(
             ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"])
         if edit:
-            if self.change_reminders_type.currentText == "День недели":
+            if self.change_reminders_type.currentText() == "День недели":
                 self.change_reminder_day_in_week.setCurrentText(
                     rdb.Read_type_index(self.Reminders_list.currentRow()).split("$")[1])
 
@@ -1116,6 +1129,76 @@ class Application(QMainWindow):
             self.change_reminder_day_in_year.close()
             self.change_reminder_time_in_day.show()
 
+    def Show_setting_window(self):
+        self.Add_alarm_button.close()
+        self.Button_clear_alarm_list.close()
+        self.Notes_list.close()
+        self.Notes_list_text.close()
+
+        self.Add_note_button.close()
+        self.Button_clear_notes_list.close()
+        self.Add_note_to_favourites.close()
+        self.Show_favourites_button.close()
+        self.Alarm_list.close()
+        self.Alarm_list_text.close()
+
+        self.Add_reminder_button.close()
+        self.Reminders_list.close()
+        self.Reminders_list_text.close()
+
+        self.Exit_Button.close()
+        self.clock.close()
+
+        self.Clock_init("clock_setting")
+        self.Setting_background.setFixedSize(self.DWIDTH, self.DHEIGHT)
+        self.Setting_background.show()
+
+        self.Change_background.setGeometry(
+            self.DWIDTH // 6, self.DHEIGHT // 6, self.DWIDTH // 6, 50)
+        self.Change_background.setFont(QtGui.QFont("intro", 13))
+        self.Change_background.setCurrentText(self.presets["background"])
+        self.Change_background.show()
+        self.Change_background.currentTextChanged.connect(
+            self.Switch_preview_image)
+
+        self.preview_image_height = self.DHEIGHT // 6
+        self.Background_preview.setGeometry(
+            self.DWIDTH // 3 + 50, self.DHEIGHT // 12, self.preview_image_height * 1920 // 1080, self.preview_image_height)
+        self.Background_preview.setPixmap(QtGui.QPixmap(
+            f"images/backgrounds/{self.Change_background.currentText()}").scaled(self.preview_image_height * 1920 // 1080, self.preview_image_height, aspectRatioMode=QtCore.Qt.KeepAspectRatio))
+        self.Background_preview.show()
+
+        self.Button_save_changes.setGeometry(
+            3 * (self.DWIDTH // 4), self.DHEIGHT // 2, 100, 50)
+        self.Button_save_changes.setText("Сохранить")
+        self.Button_save_changes.show()
+        self.Button_save_changes.clicked.connect(self.Close_setting)
+
+    def Close_setting(self):
+        self.Setting_background.close()
+        self.Button_save_changes.close()
+        self.Change_background.close()
+        self.Background_preview.close()
+
+        self.Add_alarm_button.show()
+        self.Button_clear_alarm_list.show()
+        self.Notes_list.show()
+        self.Notes_list_text.show()
+
+        self.Add_note_button.show()
+        self.Button_clear_notes_list.show()
+        self.Add_note_to_favourites.show()
+        self.Show_favourites_button.show()
+        self.Alarm_list.show()
+        self.Alarm_list_text.show()
+
+        self.Add_reminder_button.show()
+        self.Reminders_list.show()
+        self.Reminders_list_text.show()
+
+        self.Exit_Button.show()
+        self.clock.show()
+
     def Reminder_start_ring(self, reminder_index: int):
         self.Reminder_player = QMediaPlayer(self)
         self.Reminder_media = QMediaContent(
@@ -1165,6 +1248,15 @@ class Application(QMainWindow):
                 self.Reminder_activated.setChecked(True)
                 self.Reminder_activated.setText("ВКЛЮЧЕН")
 
+    def Switch_preview_image(self):
+        self.Background_preview.setPixmap(QtGui.QPixmap(
+            f"images/backgrounds/{self.Change_background.currentText()}").scaled(self.preview_image_height * 1920 // 1080, self.preview_image_height, aspectRatioMode=QtCore.Qt.KeepAspectRatio))
+        self.presets['background'] = self.Change_background.currentText()
+        self.setStyleSheet(
+            "#MainWindow{border-image:url(images/backgrounds/" + presets['background'] + ")}")
+        with open("source/settings.json", 'w', encoding='utf-8') as file:
+            json.dump(self.presets, file)
+
     def mouseMoveEvent(self, event):
         if event.x() > self.Exit_Button.x() - 5 and event.x() < self.Exit_Button.x() + self.Exit_Button.width() + 5 and event.y() > self.Exit_Button.y() - 5 and event.y() < self.Exit_Button.y() + self.Exit_Button.height() + 5:
             self.Exit_Button.setStyleSheet(
@@ -1175,12 +1267,14 @@ class Application(QMainWindow):
 
 
 if __name__ == "__main__":
+    with open("source/settings.json") as settings_file:
+        presets = json.load(settings_file)
     app = QApplication(sys.argv)
     with open("images/style.qss", "r") as style_file:
         app.setStyleSheet(style_file.read())
-    window = Application()
+    window = Application(presets=presets)
     window.setObjectName("MainWindow")
     window.setStyleSheet(
-        "#MainWindow{border-image:url(images/background.gif)}")
+        "#MainWindow{border-image:url(images/backgrounds/" + presets['background'] + ")}")
     window.show()
     sys.exit(app.exec_())

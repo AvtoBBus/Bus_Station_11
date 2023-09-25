@@ -1,6 +1,19 @@
+QLabel#Setting_background
+{
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+}
+
+
 QLabel#clock
 {
    background-color:rgba(0, 0, 0, 0.3);
+   color: white; 
+}
+
+QLabel#clock_setting
+{
+   background-color:rgba(0, 0, 0, 0.0);
    color: white; 
 }
 
