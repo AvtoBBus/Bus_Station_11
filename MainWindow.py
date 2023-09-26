@@ -142,12 +142,33 @@ class Application(QMainWindow):
 
         self.Setting_background = QLabel(self)
         self.Button_save_changes = QPushButton(self)
+        self.Button_reset_setting = QPushButton(self)
         self.Change_background = QComboBox(self)
         self.Background_preview = QLabel(self)
+        self.Change_color_theme = QColorDialog(self)
+
+        self.Notes_color_preview = QPushButton(self)
+        self.Fav_notes_color_preview = QPushButton(self)
+        self.Activated_color_preview = QPushButton(self)
+        self.Unactivated_color_preview = QPushButton(self)
+        self.Exit_button_color_preview = QPushButton(self)
+        self.Exit_button_color_hover_preview = QPushButton(self)
+
+        self.Notes_color_preview.setObjectName("Setting_color_preview")
+        self.Fav_notes_color_preview.setObjectName("Setting_color_preview")
+        self.Activated_color_preview.setObjectName("Setting_color_preview")
+        self.Unactivated_color_preview.setObjectName("Setting_color_preview")
+        self.Exit_button_color_preview.setObjectName("Setting_color_preview")
+        self.Exit_button_color_hover_preview.setObjectName(
+            "Setting_color_preview")
+
+        self.Change_color_now = False
+        self.color = []
+        self.color_index = -1
 
         self.Setting_background.setObjectName("Setting_background")
         self.Change_background.addItems(
-            os.listdir(self.presets["backgrounds_path"]))
+            sorted(os.listdir(self.presets["backgrounds_path"])))
 
         self.Clock_init("clock")
 
@@ -159,7 +180,7 @@ class Application(QMainWindow):
                               100, self.DHEIGHT - self.Exit_Button.height() - 110)
         self.Exit_Button.clicked.connect(self.Exit_func)
         self.Exit_Button.setStyleSheet(
-            "background-color: rgba(0, 0, 0, 0.3); border: none; border-radius: 5px; color: #202020")
+            f"background-color: rgba(0, 0, 0, 0.3); border: none; border-radius: 5px; color: rgba({self.presets['Exit_button_color']})")
 
         self.Setting_button = QPushButton(self)
         self.Setting_button.setObjectName("Setting_button")
@@ -180,7 +201,6 @@ class Application(QMainWindow):
         self.Notes_list.setGeometry(self.DWIDTH // 2 - 120, 100, self.DWIDTH //
                                     2 - self.Exit_Button.width(), self.DHEIGHT // 2 - 130)
         self.Notes_list.setFont(QtGui.QFont("intro", 13))
-        self.Check_data_base("Notes")
         self.Notes_list.itemDoubleClicked.connect(self.Edit_note_input)
 
         self.Add_note_button = QPushButton(self)
@@ -240,7 +260,6 @@ class Application(QMainWindow):
         self.Reminders_list.setGeometry(self.DWIDTH // 2 - 120, self.DHEIGHT // 2 +
                                         30, self.DWIDTH // 2 - self.Exit_Button.width(), self.DHEIGHT // 2 - 140)
         self.Reminders_list.itemDoubleClicked.connect(self.Edit_reminder_input)
-        self.Check_data_base("Reminders")
 
         self.reminder_thread = remindersThread(self)
         self.reminder_thread.start()
@@ -302,7 +321,6 @@ class Application(QMainWindow):
         self.Alarm_list.setGeometry(
             100, 100, self.DWIDTH // 2 - self.Exit_Button.width() - 140, self.DHEIGHT - 210)
         self.Alarm_list.setFont(QtGui.QFont("intro", 35))
-        self.Check_data_base("Alarm")
 
         self.alarm_thread = alarmThread(mainwindow=self)
         self.alarm_thread.start()
@@ -355,7 +373,7 @@ class Application(QMainWindow):
         self.Alarm_notification_background.close()
         self.Alarm_notification_stop_button.close()
 
-        self.Close_setting()
+        self.Save_setting()
         self.showFullScreen()
 
     def Clock_init(self, obj_name: str):
@@ -370,7 +388,7 @@ class Application(QMainWindow):
 
     def Exit_func(self):
         self.Exit_Button.setStyleSheet(
-            "background-color: rgba(0, 0, 0, 0.3); border: none; border-radius: 5px; color: #202020")
+            f"background-color: rgba(0, 0, 0, 0.3); border: none; border-radius: 5px; color: rgba({self.presets['Exit_button_color']})")
         Are_U_Sure_Box = QMessageBox()
         Are_U_Sure_Box.move(self.DWIDTH // 2, self.DHEIGHT // 2)
         reply = QMessageBox.question(self, 'Уверены?',
@@ -384,17 +402,20 @@ class Application(QMainWindow):
             Are_U_Sure_Box.close()
 
     def Check_data_base(self, db_type: str):
+        color = []
         if db_type == "Notes":
             data = ndb.Read_full()
             if len(data) == 0:
                 return
             for i in range(len(data)):
+                item = QListWidgetItem(data[i][0])
                 if data[i][2] == 1:
-                    item = QListWidgetItem(data[i][0])
-                    item.setForeground(QtGui.QColor(229, 199, 1, 205))
-                    self.Notes_list.addItem(item)
+                    color = self.presets["Fav_notes_color_preview"].split(', ')
                 else:
-                    self.Notes_list.addItem(QListWidgetItem(data[i][0]))
+                    color = self.presets["Notes_color_preview"].split(', ')
+                item.setForeground(QtGui.QColor(int(color[0]), int(
+                    color[1]), int(color[2]), int(color[3])))
+                self.Notes_list.addItem(item)
         elif db_type == "Alarm":
             data = adb.Read_full()
             if len(data) == 0:
@@ -402,9 +423,14 @@ class Application(QMainWindow):
             for i in range(len(data)):
                 item = QListWidgetItem(data[i][0])
                 if data[i][2] == 1:
-                    item.setForeground(QtGui.QColor(102, 255, 178, 255))
+                    color = self.presets["Activated_color_preview"].split(', ')
+                    item.setForeground(QtGui.QColor(int(color[0]), int(
+                        color[1]), int(color[2]), int(color[3])))
                 else:
-                    item.setForeground(QtGui.QColor(229, 204, 255, 255))
+                    color = self.presets["Unactivated_color_preview"].split(
+                        ', ')
+                    item.setForeground(QtGui.QColor(int(color[0]), int(
+                        color[1]), int(color[2]), int(color[3])))
                 item.setTextAlignment(QtCore.Qt.AlignCenter)
                 self.Alarm_list.addItem(item)
         elif db_type == "Reminders":
@@ -416,9 +442,14 @@ class Application(QMainWindow):
                     data[i][0], data[i][3].split("$")[1], data[i][3].split("$")[0]))
                 item.setFont(QtGui.QFont("intro", 14))
                 if data[i][2] == 1:
-                    item.setForeground(QtGui.QColor(102, 255, 178))
+                    color = self.presets["Activated_color_preview"].split(', ')
+                    item.setForeground(QtGui.QColor(int(color[0]), int(
+                        color[1]), int(color[2]), int(color[3])))
                 else:
-                    item.setForeground(QtGui.QColor(229, 204, 255))
+                    color = self.presets["Unactivated_color_preview"].split(
+                        ', ')
+                    item.setForeground(QtGui.QColor(int(color[0]), int(
+                        color[1]), int(color[2]), int(color[3])))
                 self.Reminders_list.addItem(item)
 
     def Draw_input_note_menu(self, edit: bool = False):
@@ -576,13 +607,16 @@ class Application(QMainWindow):
 
     def Add_Del_favourites(self):
         index = self.Notes_list.currentRow()
+        color = []
         if index >= 0:
             if not ndb.Check_favourite(index):
-                self.Notes_list.currentItem().setForeground(QtGui.QColor(229, 199, 1, 205))
+                color = self.presets["Fav_notes_color_preview"].split(', ')
                 ndb.Add_to_favourite(index, 1)
             else:
-                self.Notes_list.currentItem().setForeground(QtGui.QColor(255, 255, 255))
+                color = self.presets["Notes_color_preview"].split(', ')
                 ndb.Add_to_favourite(index, 0)
+            self.Notes_list.currentItem().setForeground(QtGui.QColor(
+                int(color[0]), int(color[1]), int(color[2]), int(color[3])))
 
     def Show_favourites(self):
         if not self.show_fav_now:
@@ -753,10 +787,14 @@ class Application(QMainWindow):
         item = QListWidgetItem(self.Alarm_preview.text())
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         active = 1
-        item.setForeground(QtGui.QColor(102, 255, 178, 255))
+        color = self.presets['Activated_color_preview'].split(', ')
+        item.setForeground(QtGui.QColor(int(color[0]), int(
+            color[1]), int(color[2]), int(color[3])))
         if not self.Alarm_activated.isChecked():
             active = 0
-            item.setForeground(QtGui.QColor(229, 204, 255, 255))
+            color = self.presets['Unactivated_color_preview'].split(', ')
+            item.setForeground(QtGui.QColor(int(color[0]), int(
+                color[1]), int(color[2]), int(color[3])))
         self.Alarm_list.addItem(item)
         adb.Add_to_data_base(self.Alarm_preview.text(),
                              self.Alarm_change_music.currentText(),
@@ -1024,10 +1062,14 @@ class Application(QMainWindow):
                 self.input_text_reminder.toPlainText(), self.change_reminder_date.text(), self.change_reminders_type.currentText()))
         item.setFont(QtGui.QFont("intro", 14))
         active = 1
-        item.setForeground(QtGui.QColor(102, 255, 178, 255))
+        color = self.presets['Activated_color_preview'].split(', ')
+        item.setForeground(QtGui.QColor(int(color[0]), int(
+            color[1]), int(color[2]), int(color[3])))
         if not self.Reminder_activated.isChecked():
             active = 0
-            item.setForeground(QtGui.QColor(229, 204, 255, 255))
+            color = self.presets['Unactivated_color_preview'].split(', ')
+            item.setForeground(QtGui.QColor(int(color[0]), int(
+                color[1]), int(color[2]), int(color[3])))
         self.Reminders_list.addItem(item)
         today = datetime.now().date().isoformat()
         if self.change_reminders_type.currentText() == "Каждый день":
@@ -1168,17 +1210,109 @@ class Application(QMainWindow):
             f"images/backgrounds/{self.Change_background.currentText()}").scaled(self.preview_image_height * 1920 // 1080, self.preview_image_height, aspectRatioMode=QtCore.Qt.KeepAspectRatio))
         self.Background_preview.show()
 
+        self.Notes_color_preview.setGeometry(self.Change_background.x(
+        ), self.DHEIGHT // 3 + 50, self.Change_background.width(), 50)
+        self.Notes_color_preview.setStyleSheet(
+            f"color: rgba({self.presets['Notes_color_preview']})")
+        self.Notes_color_preview.setText("Обычная заметка")
+        self.Notes_color_preview.setFont(QtGui.QFont("intro", 13))
+        self.Notes_color_preview.clicked.connect(
+            self.Setting_change_color_notes)
+        self.Notes_color_preview.show()
+
+        self.Fav_notes_color_preview.setGeometry(self.Notes_color_preview.x(), self.Notes_color_preview.y(
+        ) + self.Notes_color_preview.height() + 10, self.Notes_color_preview.width(), self.Notes_color_preview.height())
+        self.Fav_notes_color_preview.setStyleSheet(
+            f"color: rgba({self.presets['Fav_notes_color_preview']})")
+        self.Fav_notes_color_preview.setText("Избранная заметка")
+        self.Fav_notes_color_preview.setFont(QtGui.QFont("intro", 13))
+        self.Fav_notes_color_preview.clicked.connect(
+            self.Setting_change_color_fav_notes)
+        self.Fav_notes_color_preview.show()
+
+        self.Activated_color_preview.setGeometry(self.Fav_notes_color_preview.x(), self.Fav_notes_color_preview.y(
+        ) + self.Fav_notes_color_preview.height() + 10, self.Notes_color_preview.width(), self.Notes_color_preview.height())
+        self.Activated_color_preview.setStyleSheet(
+            f"color: rgba({self.presets['Activated_color_preview']})")
+        self.Activated_color_preview.setText("Включено")
+        self.Activated_color_preview.setFont(QtGui.QFont("intro", 13))
+        self.Activated_color_preview.clicked.connect(
+            self.Setting_change_color_activated)
+        self.Activated_color_preview.show()
+
+        self.Unactivated_color_preview.setGeometry(self.Activated_color_preview.x(), self.Activated_color_preview.y(
+        ) + self.Activated_color_preview.height() + 10, self.Notes_color_preview.width(), self.Notes_color_preview.height())
+        self.Unactivated_color_preview.setStyleSheet(
+            f"color: rgba({self.presets['Unactivated_color_preview']})")
+        self.Unactivated_color_preview.setText("Отключено")
+        self.Unactivated_color_preview.setFont(QtGui.QFont("intro", 13))
+        self.Unactivated_color_preview.clicked.connect(
+            self.Setting_change_color_unactivated)
+        self.Unactivated_color_preview.show()
+
+        self.Exit_button_color_preview.setGeometry(self.Unactivated_color_preview.x(), self.Unactivated_color_preview.y(
+        ) + self.Unactivated_color_preview.height() + 10, self.Notes_color_preview.width(), self.Notes_color_preview.height())
+        self.Exit_button_color_preview.setStyleSheet(
+            f"color: rgba({self.presets['Exit_button_color']})")
+        self.Exit_button_color_preview.setText("ВЫХОД")
+        self.Exit_button_color_preview.setFont(QtGui.QFont("intro", 15))
+        self.Exit_button_color_preview.clicked.connect(
+            self.Setting_change_color_exit)
+        self.Exit_button_color_preview.show()
+
+        self.Exit_button_color_hover_preview.setGeometry(self.Exit_button_color_preview.x(), self.Exit_button_color_preview.y(
+        ) + self.Exit_button_color_preview.height() + 10, self.Notes_color_preview.width(), self.Notes_color_preview.height())
+        self.Exit_button_color_hover_preview.setStyleSheet(
+            f"color: rgba({self.presets['Exit_button_color_hover']})")
+        self.Exit_button_color_hover_preview.setText("ВЫХОД")
+        self.Exit_button_color_hover_preview.setFont(QtGui.QFont("intro", 15))
+        self.Exit_button_color_hover_preview.clicked.connect(
+            self.Setting_change_color_exit_hover)
+        self.Exit_button_color_hover_preview.show()
+
+        self.Change_color_theme.move(
+            self.DWIDTH // 3 + 50, self.Notes_color_preview.y())
+        self.Change_color_theme.finished.connect(self.Finish_change_color)
+
         self.Button_save_changes.setGeometry(
             3 * (self.DWIDTH // 4), self.DHEIGHT // 2, 100, 50)
         self.Button_save_changes.setText("Сохранить")
         self.Button_save_changes.show()
-        self.Button_save_changes.clicked.connect(self.Close_setting)
+        self.Button_save_changes.clicked.connect(self.Save_setting)
 
-    def Close_setting(self):
+        self.Button_reset_setting.setGeometry(
+            self.Button_save_changes.x() + 110, self.Button_save_changes.y(), 100, 50)
+        self.Button_reset_setting.setText("Сбросить")
+        self.Button_reset_setting.show()
+        self.Button_reset_setting.clicked.connect(self.Reset_setting)
+
+    def Save_setting(self):
         self.Setting_background.close()
         self.Button_save_changes.close()
+        self.Button_reset_setting.close()
         self.Change_background.close()
         self.Background_preview.close()
+        self.Change_color_theme.close()
+        self.Notes_color_preview.close()
+        self.Fav_notes_color_preview.close()
+        self.Activated_color_preview.close()
+        self.Unactivated_color_preview.close()
+        self.Exit_button_color_preview.close()
+        self.Exit_button_color_hover_preview.close()
+
+        self.Exit_Button.setStyleSheet(
+            f"background-color: rgba(0, 0, 0, 0.3); border: none; border-radius: 5px; color: rgba({self.presets['Exit_button_color']})")
+        self.setStyleSheet(
+            "#MainWindow{border-image:url(images/backgrounds/" + presets['background'] + ")}")
+        with open("source/settings.json", 'w', encoding='utf-8') as file:
+            json.dump(self.presets, file)
+
+        self.Notes_list.clear()
+        self.Alarm_list.clear()
+        self.Reminders_list.clear()
+        self.Check_data_base("Notes")
+        self.Check_data_base("Alarm")
+        self.Check_data_base("Reminders")
 
         self.Add_alarm_button.show()
         self.Button_clear_alarm_list.show()
@@ -1196,8 +1330,15 @@ class Application(QMainWindow):
         self.Reminders_list.show()
         self.Reminders_list_text.show()
 
+        self.clock.setObjectName("clock")
+
         self.Exit_Button.show()
         self.clock.show()
+
+    def Reset_setting(self):
+        with open("source/origin.json") as settings_file:
+            self.presets = json.load(settings_file)
+        self.Save_setting()
 
     def Reminder_start_ring(self, reminder_index: int):
         self.Reminder_player = QMediaPlayer(self)
@@ -1248,22 +1389,108 @@ class Application(QMainWindow):
                 self.Reminder_activated.setChecked(True)
                 self.Reminder_activated.setText("ВКЛЮЧЕН")
 
+    def Setting_change_color_notes(self):
+        self.color = self.presets["Notes_color_preview"].split(', ')
+        if not self.Change_color_now:
+            self.color_index = 0
+        self.Change_color_setting()
+
+    def Setting_change_color_fav_notes(self):
+        self.color = self.presets["Fav_notes_color_preview"].split(', ')
+        if not self.Change_color_now:
+            self.color_index = 1
+        self.Change_color_setting()
+
+    def Setting_change_color_activated(self):
+        self.color = self.presets["Activated_color_preview"].split(', ')
+        if not self.Change_color_now:
+            self.color_index = 2
+        self.Change_color_setting()
+
+    def Setting_change_color_unactivated(self):
+        self.color = self.presets["Unactivated_color_preview"].split(', ')
+        if not self.Change_color_now:
+            self.color_index = 3
+        self.Change_color_setting()
+
+    def Setting_change_color_exit(self):
+        self.color = self.presets["Exit_button_color"].split(', ')
+        if not self.Change_color_now:
+            self.color_index = 4
+        self.Change_color_setting()
+
+    def Setting_change_color_exit_hover(self):
+        self.color = self.presets["Exit_button_color_hover"].split(', ')
+        if not self.Change_color_now:
+            self.color_index = 5
+        self.Change_color_setting()
+
+    def Change_color_setting(self):
+        if not self.Change_color_now:
+            for i in range(len(self.color)):
+                self.color[i] = int(self.color[i])
+            self.Change_color_now = True
+            self.Change_color_theme.setCurrentColor(QtGui.QColor(
+                self.color[0], self.color[1], self.color[2], self.color[3]))
+            self.Change_color_theme.show()
+            self.Change_color_theme.currentColorChanged.connect(
+                self.Switch_color)
+            self.Change_color_theme.colorSelected.connect(
+                self.Finish_change_color)
+
+    def Switch_color(self):
+        color = self.Change_color_theme.currentColor().getRgb()
+        if self.color_index == 0:
+            self.Notes_color_preview.setStyleSheet(
+                f"color: rgba({color[0]}, {color[1]}, {color[2]}, {color[3]})")
+        elif self.color_index == 1:
+            self.Fav_notes_color_preview.setStyleSheet(
+                f"color: rgba({color[0]}, {color[1]}, {color[2]}, {color[3]})")
+        elif self.color_index == 2:
+            self.Activated_color_preview.setStyleSheet(
+                f"color: rgba({color[0]}, {color[1]}, {color[2]}, {color[3]})")
+        elif self.color_index == 3:
+            self.Unactivated_color_preview.setStyleSheet(
+                f"color: rgba({color[0]}, {color[1]}, {color[2]}, {color[3]})")
+        elif self.color_index == 4:
+            self.Exit_button_color_preview.setStyleSheet(
+                f"color: rgba({color[0]}, {color[1]}, {color[2]}, {color[3]})")
+        elif self.color_index == 5:
+            self.Exit_button_color_hover_preview.setStyleSheet(
+                f"color: rgba({color[0]}, {color[1]}, {color[2]}, {color[3]})")
+
+    def Finish_change_color(self):
+        if self.Change_color_now:
+            color = self.Change_color_theme.currentColor().getRgb()
+            if self.color_index == 0:
+                self.presets["Notes_color_preview"] = f"{color[0]}, {color[1]}, {color[2]}, {color[3]}"
+            elif self.color_index == 1:
+                self.presets["Fav_notes_color_preview"] = f"{color[0]}, {color[1]}, {color[2]}, {color[3]}"
+            elif self.color_index == 2:
+                self.presets["Activated_color_preview"] = f"{color[0]}, {color[1]}, {color[2]}, {color[3]}"
+            elif self.color_index == 3:
+                self.presets["Unactivated_color_preview"] = f"{color[0]}, {color[1]}, {color[2]}, {color[3]}"
+            elif self.color_index == 4:
+                self.presets["Exit_button_color"] = f"{color[0]}, {color[1]}, {color[2]}, {color[3]}"
+            elif self.color_index == 5:
+                self.presets["Exit_button_color_hover"] = f"{color[0]}, {color[1]}, {color[2]}, {color[3]}"
+            self.Change_color_now = False
+            self.color_index = -1
+
     def Switch_preview_image(self):
+        self.presets['background'] = self.Change_background.currentText()
         self.Background_preview.setPixmap(QtGui.QPixmap(
             f"images/backgrounds/{self.Change_background.currentText()}").scaled(self.preview_image_height * 1920 // 1080, self.preview_image_height, aspectRatioMode=QtCore.Qt.KeepAspectRatio))
-        self.presets['background'] = self.Change_background.currentText()
-        self.setStyleSheet(
-            "#MainWindow{border-image:url(images/backgrounds/" + presets['background'] + ")}")
         with open("source/settings.json", 'w', encoding='utf-8') as file:
             json.dump(self.presets, file)
 
     def mouseMoveEvent(self, event):
         if event.x() > self.Exit_Button.x() - 5 and event.x() < self.Exit_Button.x() + self.Exit_Button.width() + 5 and event.y() > self.Exit_Button.y() - 5 and event.y() < self.Exit_Button.y() + self.Exit_Button.height() + 5:
             self.Exit_Button.setStyleSheet(
-                "background-color: rgba(0, 0, 0, 0.3); border: none; border-radius: 5px; color: red")
+                f"background-color: rgba(0, 0, 0, 0.3); border: none; border-radius: 5px; color: rgba({self.presets['Exit_button_color_hover']})")
         else:
             self.Exit_Button.setStyleSheet(
-                "background-color: rgba(0, 0, 0, 0.3); border: none; border-radius: 5px; color: #202020")
+                f"background-color: rgba(0, 0, 0, 0.3); border: none; border-radius: 5px; color: rgba({self.presets['Exit_button_color']})")
 
 
 if __name__ == "__main__":

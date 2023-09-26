@@ -1,0 +1,11 @@
+{
+    "background": "Chill room.gif",
+    "backgrounds_path": "images/backgrounds",
+    "Notes_color_preview": "250, 250, 250, 255",
+    "Fav_notes_color_preview": "229, 199, 1, 205",
+    "Activated_color_preview": "102, 255, 178, 255",
+    "Unactivated_color_preview": "229, 204, 255, 255",
+    "Exit_button_color": "32, 32, 32, 255",
+    "Exit_button_color_hover": "255, 0, 0, 255",
+    "language": "ru"
+}

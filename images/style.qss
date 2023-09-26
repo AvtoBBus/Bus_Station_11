@@ -8,6 +8,7 @@ QLabel#Setting_background
 QLabel#clock
 {
    background-color:rgba(0, 0, 0, 0.3);
+   border-radius: 5px;
    color: white; 
 }
 
@@ -51,6 +52,12 @@ QLabel#Text_annotation
 QLabel#Reminder_text
 {
     color: white;
+}
+
+QPushButton#Setting_color_preview
+{
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
 }
 
 QPushButton#Setting_button
